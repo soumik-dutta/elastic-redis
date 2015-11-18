@@ -7,7 +7,7 @@ var router = express.Router();
 var elasticsearch = require('elasticsearch');
 //configuring the elastic-node
 var client = new elasticsearch.Client({
-    host: 'localhost:9200/blog/post',
+        host: 'localhost:9200/blog/post',
     log: 'trace'
 });
 
@@ -44,16 +44,36 @@ router.get('/select/all',function(req,res,next){
 
 })
 
-
+//to get the count of the particular string or all when given none
 router.get('/count',function(req,res,next) {
     var param=req.param('string')
     client.count({
-        index: 'index_name'
+        q:param
     }, function (error, response) {
         if(error)
             console.trace(error.message);
         else{
-            res.json(response);
+            res.json(response.count);
+        }
+
+    });
+});
+
+//like features
+router.get('/like',function(req,res,next) {
+    var param=req.param('string')
+    client.suggest({
+        index: 'blog',
+        body: {
+            mysuggester: {
+                text: param
+            }
+        }
+    }, function (error, response) {
+        if(error)
+            console.trace(error.message);
+        else{
+            res.json(response.count);
         }
 
     });
@@ -61,3 +81,12 @@ router.get('/count',function(req,res,next) {
 
 
 module.exports=router;
+
+/*
+
+{
+    "_index" : "blog",
+    "_type" : "post",
+    "_id" : "_status",
+    "found" : false
+}*/
